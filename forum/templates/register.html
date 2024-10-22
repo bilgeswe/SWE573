@@ -7,11 +7,11 @@
 </head>
 <body>
     <h2>Register</h2>
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">  <!-- Added enctype for file upload -->
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit">Register</button>
     </form>
+    <p>Already have an account? <a href="{% url 'login' %}">Log in</a></p>
 </body>
 </html>
-
