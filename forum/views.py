@@ -3,6 +3,9 @@ from django.contrib.auth import login, authenticate         # Functions for user
 from .forms import UserRegistrationForm                     # Importing the custom registration form created earlier
 from .forms import ObjectPostForm                           # Import the ObjectPostForm from the forms module in the same app
 
+def home(request):
+    return render(request, 'forum/home.html')               # This will render a home page template
+
 def register(request):
     if request.method == 'POST':                            # Check if the request method is POST, indicating form submission
         form = UserRegistrationForm(request.POST)           # Create a UserRegistrationForm instance with the submitted data

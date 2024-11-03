@@ -1,6 +1,38 @@
-<h2>Create Object Post</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Create Post</button>
-</form>
+{% load static %}
+<!-- forum/templates/forum/create_object_post.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Object Post - Mystery Object Finder</title>
+    <link rel="stylesheet" href="{% static 'forum/style.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Create Object Post</h1>
+    </header>
+    <main>
+        <form method="post">
+            {% csrf_token %}  <!-- Security token for form submission -->
+            <div>
+                <label for="title">Title:</label>
+                <input type="text" id="title" name="title" required>
+            </div>
+            <div>
+                <label for="description">Description:</label>
+                <textarea id="description" name="description" required></textarea>
+            </div>
+            <div>
+                <label for="tags">Tags:</label>
+                <input type="text" id="tags" name="tags" placeholder="Comma-separated tags" required>
+            </div>
+            <button type="submit">Create Post</button>
+        </form>
+        <p><a href="{% url 'home' %}">Go back to Home</a></p>
+    </main>
+    <footer>
+        <p>&copy; 2024 Mystery Object Finder</p>
+    </footer>
+</body>
+</html>

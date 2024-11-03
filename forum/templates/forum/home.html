@@ -1,0 +1,29 @@
+{% load static %}
+<!-- forum/templates/forum/home.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Mystery Object Finder</title>
+    <link rel="stylesheet" href="{% static 'forum/style.css' %}"> 
+</head>
+<body>
+    <header>
+        <h1>Welcome to the Mystery Object Finder!</h1>
+        <nav>
+            <ul>
+                <li><a href="{% url 'register' %}">Register</a></li>
+                <li><a href="{% url 'login' %}">Login</a></li>
+                <li><a href="{% url 'create_object_post' %}">Create Object Post</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <p>Discover and post about mystery objects!</p>
+    </main>
+    <footer>
+        <p>&copy; 2024 Mystery Object Finder</p>
+    </footer>
+</body>
+</html>

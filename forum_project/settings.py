@@ -27,6 +27,11 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+STATIC_URL = '/static/'
+
+STATICFILES_DIRS = [
+    BASE_DIR / "static",  # Adjust according to your project structure
+]
 
 # Application definition
 
@@ -37,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",          # Required for session management
     "django.contrib.messages",          # Messaging framework
     "django.contrib.staticfiles",       # Static file management
+    'forum',                            #our forum app
 ]
 
 MIDDLEWARE = [
