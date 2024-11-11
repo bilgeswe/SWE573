@@ -1,0 +1,16 @@
+{% extends 'object_finder/base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2>User Profile</h2>
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title">{{ user.username }}</h5>
+      <p class="card-text"><strong>Email:</strong> {{ user.email }}</p>
+      <p class="card-text"><strong>First Name:</strong> {{ user.first_name }}</p>
+      <p class="card-text"><strong>Last Name:</strong> {{ user.last_name }}</p>
+      <!-- Add more user fields as needed -->
+    </div>
+  </div>
+</div>
+{% endblock content %}

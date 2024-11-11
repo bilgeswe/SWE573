@@ -1,0 +1,76 @@
+/* styles.css */
+
+/* Adjust the sidebar height to match the viewport */
+.sidebar {
+  position: sticky;
+  top: 70px; /* Adjust based on navbar height */
+  height: calc(100vh - 70px);
+  overflow-y: auto;
+}
+
+/* Style the logout button */
+.logout-button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  text-align: left;
+  color: #212529; /* Bootstrap's default text color */
+}
+
+.logout-button:hover {
+  background-color: #f8f9fa; /* Bootstrap's light color */
+}
+
+.footer {
+  position: relative;
+  bottom: 0;
+  width: 100%;
+}
+
+body {
+  background-color: #f5f5f5; /* Light grey background */
+}
+
+.card {
+  background-color: #ffffff;
+}
+
+.navbar-brand {
+  font-weight: bold;
+}
+
+
+/* Hero Section Styling */
+.hero-section {
+  background: url("../images/forum-banner.jpg") no-repeat center center;
+  background-size: cover;
+  position: relative;
+  height: 300px; /* Adjust height as needed */
+}
+
+.hero-overlay {
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-section .container {
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.hero-section h1 {
+  font-size: 3rem;
+  font-weight: bold;
+}
+
+.hero-section p.lead {
+  font-size: 1.5rem;
+}
+
