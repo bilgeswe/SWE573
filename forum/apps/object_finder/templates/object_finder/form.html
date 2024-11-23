@@ -1,33 +1,49 @@
+<!-- templates/object_finder/form.html -->
+
 {% extends "object_finder/base.html" %}
 
 {% block content %}
 <div class="container mt-5">
     <h2>Create a New Post</h2>
-    <form method="post" enctype="multipart/form-data">
+    <form id="post-form" method="post">
         {% csrf_token %}
         {% if form.errors %}
             <div class="alert alert-danger">
                 <strong>Please correct the errors below:</strong>
             </div>
         {% endif %}
-        {% for field in form %}
-            <div class="mb-3">
-                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                {{ field }}
-                {% if field.help_text %}
-                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                {% endif %}
-                {% if field.errors %}
-                    <div class="text-danger">
-                        {% for error in field.errors %}
-                            {{ error }}
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-        {% endfor %}
-        <button type="submit" class="btn btn-primary">Submit</button>
+        {{ form.as_p }}
+
+        <div id="quill-editor" style="height: 300px;"></div>
+        <input type="hidden" name="content_delta" id="content-delta">
+        <button type="submit" id="submit-button" class="btn btn-primary">Submit</button>
     </form>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var quill = new Quill('#quill-editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, false] }],
+                    ['bold', 'italic', 'underline'],
+                    ['image'],
+                    ['clean']
+                ]
+            }
+        });
+
+        var form = document.getElementById('post-form');
+        var submitButton = document.getElementById('submit-button');
+
+        submitButton.addEventListener('click', function(event) {
+            event.preventDefault();
+            var content_delta = JSON.stringify(quill.getContents());
+            document.getElementById('content-delta').value = content_delta;
+            form.submit();
+        });
+    });
+</script>
 {% endblock content %}
 
