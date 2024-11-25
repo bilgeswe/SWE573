@@ -1,33 +1,157 @@
+<!-- templates/object_finder/form.html -->
+
 {% extends "object_finder/base.html" %}
+{% load static %}
 
 {% block content %}
 <div class="container mt-5">
     <h2>Create a New Post</h2>
-    <form method="post" enctype="multipart/form-data">
+    <form id="post-form" method="post">
         {% csrf_token %}
         {% if form.errors %}
             <div class="alert alert-danger">
                 <strong>Please correct the errors below:</strong>
             </div>
         {% endif %}
-        {% for field in form %}
-            <div class="mb-3">
-                <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
-                {{ field }}
-                {% if field.help_text %}
-                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                {% endif %}
-                {% if field.errors %}
-                    <div class="text-danger">
-                        {% for error in field.errors %}
-                            {{ error }}
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </div>
-        {% endfor %}
-        <button type="submit" class="btn btn-primary">Submit</button>
+        {{ form.title }}
+
+        <!-- Tags Input Field -->
+        <div class="form-group">
+            <label for="tags-input">Tags</label>
+            <input type="text" id="tags-input" class="form-control" placeholder="Start typing to search tags...">
+        </div>
+
+        <div id="quill-editor" style="height: 300px;"></div>
+        <input type="hidden" name="content_delta" id="content-delta">
+        <!-- Hidden input to store selected tags -->
+        <input type="hidden" name="tags" id="selected-tags">
+        <button type="submit" id="submit-button" class="btn btn-primary">Submit</button>
     </form>
 </div>
-{% endblock content %}
 
+<!-- Include the wikidata.js library -->
+<script src="{% static 'js/wikidata.js' %}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var quill = new Quill('#quill-editor', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, false] }],
+                    ['bold', 'italic', 'underline'],
+                    ['image'],
+                    ['clean']
+                ]
+            }
+        });
+
+        var form = document.getElementById('post-form');
+        var submitButton = document.getElementById('submit-button');
+
+        submitButton.addEventListener('click', function(event) {
+            event.preventDefault();
+            var content_delta = JSON.stringify(quill.getContents());
+            document.getElementById('content-delta').value = content_delta;
+            form.submit();
+        });
+
+        // Tags Autocomplete Functionality
+        var tagsInput = document.getElementById('tags-input');
+        var selectedTagsInput = document.getElementById('selected-tags');
+        var selectedTags = [];
+
+        function createSuggestionList() {
+            var suggestionList = document.createElement('ul');
+            suggestionList.id = 'suggestion-list';
+            suggestionList.className = 'list-group';
+            suggestionList.style.position = 'absolute';
+            suggestionList.style.zIndex = '1000';
+            suggestionList.style.width = '100%';
+            suggestionList.style.maxHeight = '200px';
+            suggestionList.style.overflowY = 'auto';
+            tagsInput.parentNode.appendChild(suggestionList);
+            return suggestionList;
+        }
+
+        var suggestionList = createSuggestionList();
+
+        tagsInput.addEventListener('input', function() {
+            var query = tagsInput.value.trim();
+            if (query.length > 0) {
+                WikidataAPI.searchEntities(query, 5).then(results => {
+                    suggestionList.innerHTML = '';
+                    results.forEach(result => {
+                        var li = document.createElement('li');
+                        li.className = 'list-group-item list-group-item-action';
+                        li.textContent = `${result.label} (${result.id})`;
+                        li.dataset.id = result.id;
+                        li.dataset.label = result.label;
+                        li.addEventListener('click', function() {
+                            addTag(result);
+                            tagsInput.value = '';
+                            suggestionList.innerHTML = '';
+                        });
+                        suggestionList.appendChild(li);
+                    });
+                });
+            } else {
+                suggestionList.innerHTML = '';
+            }
+        });
+
+        function addTag(tag) {
+            if (selectedTags.find(t => t.id === tag.id)) {
+                return;
+            }
+            selectedTags.push(tag);
+            updateSelectedTagsInput();
+            renderSelectedTags();
+        }
+
+        function removeTag(tagId) {
+            selectedTags = selectedTags.filter(t => t.id !== tagId);
+            updateSelectedTagsInput();
+            renderSelectedTags();
+        }
+
+        function updateSelectedTagsInput() {
+            // Store selected tags as a JSON string
+            selectedTagsInput.value = JSON.stringify(selectedTags);
+        }
+
+        function renderSelectedTags() {
+            var tagsContainer = document.getElementById('selected-tags-container');
+            if (!tagsContainer) {
+                tagsContainer = document.createElement('div');
+                tagsContainer.id = 'selected-tags-container';
+                tagsInput.parentNode.insertBefore(tagsContainer, tagsInput.nextSibling);
+            }
+            tagsContainer.innerHTML = '';
+            selectedTags.forEach(tag => {
+                var tagBadge = document.createElement('span');
+                tagBadge.className = 'badge badge-primary mr-1';
+                tagBadge.style.border = '1px solid #000';
+                tagBadge.style.color = 'gray';
+                tagBadge.textContent = tag.label;
+                var removeBtn = document.createElement('span');
+                removeBtn.className = 'ml-1 text-danger';
+                removeBtn.style.cursor = 'pointer';
+                removeBtn.innerHTML = '&times;';
+                removeBtn.addEventListener('click', function() {
+                    removeTag(tag.id);
+                });
+                tagBadge.appendChild(removeBtn);
+                tagsContainer.appendChild(tagBadge);
+            });
+        }
+
+        // Close suggestions when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!tagsInput.contains(event.target)) {
+                suggestionList.innerHTML = '';
+            }
+        });
+    });
+</script>
+{% endblock content %}

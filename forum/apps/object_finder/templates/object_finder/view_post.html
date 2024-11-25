@@ -1,0 +1,164 @@
+<!-- templates/object_finder/view_post.html -->
+
+{% extends "object_finder/base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>{{ post.title }}</h2>
+    <!-- Quill Viewer -->
+    <div id="quill-viewer"></div>
+
+    <!-- Display Tags -->
+    {% if tags %}
+        <h4>Tags:</h4>
+        <div class="container">
+            <ul id="tags-list" class="list-inline">
+                {% for tag in tags %}
+                        <li style="border: 1px solid #000" class="list-inline-item">
+                            <span style="color:gray" class="tag badge badge-info" data-tag-id="{{ tag.tag_id }}">{{ tag.name }}</span>
+                        </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <!-- Display Comments -->
+    <h3>Comments</h3>
+    {% if comments %}
+        {% for comment in comments %}
+            <div class="comment mb-3">
+                <p><strong>{{ comment.author.username }}</strong> on {{ comment.date_posted|date:"F j, Y, g:i a" }}</p>
+                <p>{{ comment.content }}</p>
+                <hr>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No comments yet. Be the first to comment!</p>
+    {% endif %}
+
+    <!-- Comment Form -->
+    {% if user.is_authenticated %}
+        <h4>Leave a Comment</h4>
+        <form method="post">
+            {% csrf_token %}
+            {{ comment_form.as_p }}
+            <button type="submit" class="btn btn-primary">Submit Comment</button>
+        </form>
+    {% else %}
+        <p>You must be <a href="{% url 'login' %}">logged in</a> to post a comment.</p>
+    {% endif %}
+</div>
+
+<!-- Include the wikidata.js library -->
+<script src="{% static 'js/wikidata.js' %}"></script>
+<!-- Include the MD5 library for image URL generation -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
+
+<script>
+    // Initialize Quill in read-only mode
+    var quill = new Quill('#quill-viewer', {
+        theme: 'snow',
+        readOnly: true,
+        modules: {
+            toolbar: false
+        }
+    });
+
+    var content_delta = {{ post.content_delta|safe }};
+    quill.setContents(content_delta);
+
+    // Fetch additional data for tags when hovered
+    document.addEventListener('DOMContentLoaded', function() {
+        var tags = document.querySelectorAll('.tag');
+        var tagDataCache = {};
+
+        tags.forEach(function(tagElement) {
+            tagElement.addEventListener('mouseover', function() {
+                var tagId = tagElement.dataset.tagId;
+                if (tagDataCache[tagId]) {
+                    showTooltip(tagElement, tagDataCache[tagId]);
+                } else {
+                    fetchTagDetails(tagElement, tagId);
+                }
+            });
+
+            tagElement.addEventListener('mouseout', function() {
+                hideTooltip();
+            });
+        });
+
+        function fetchTagDetails(element, tagId) {
+            WikidataAPI.getEntityDetails(tagId)
+                .then(function(entity) {
+                    var description = entity.descriptions && entity.descriptions.en ? entity.descriptions.en.value : 'No description available.';
+                    var imageUrl = '';
+
+                    // Fetch image if available (Property P18)
+                    if (entity.claims && entity.claims.P18 && entity.claims.P18[0]) {
+                        var fileName = entity.claims.P18[0].mainsnak.datavalue.value;
+                        imageUrl = getCommonsImageUrl(fileName);
+                    }
+
+                    var data = { description: description, imageUrl: imageUrl };
+                    tagDataCache[tagId] = data;
+                    showTooltip(element, data);
+                })
+                .catch(function(error) {
+                    console.error('Error fetching tag details:', error);
+                });
+        }
+
+        function getCommonsImageUrl(fileName) {
+            var sanitizedFileName = fileName.replace(/ /g, '_');
+            var encodedFileName = encodeURIComponent(sanitizedFileName);
+            var md5Hash = md5(sanitizedFileName);
+            var url = 'https://upload.wikimedia.org/wikipedia/commons/' +
+                md5Hash.substring(0,1) + '/' + md5Hash.substring(0,2) + '/' + encodedFileName;
+            return url;
+        }
+
+        function showTooltip(element, data) {
+            var tooltip = document.getElementById('tag-tooltip');
+            if (!tooltip) {
+                tooltip = document.createElement('div');
+                tooltip.id = 'tag-tooltip';
+                tooltip.style.position = 'absolute';
+                tooltip.style.zIndex = '1000';
+                tooltip.style.backgroundColor = '#fff';
+                tooltip.style.border = '1px solid #ccc';
+                tooltip.style.padding = '10px';
+                tooltip.style.borderRadius = '5px';
+                tooltip.style.boxShadow = '0px 0px 10px rgba(0,0,0,0.1)';
+                tooltip.style.maxWidth = '200px';
+                document.body.appendChild(tooltip);
+            }
+            tooltip.innerHTML = '';
+            if (data.imageUrl) {
+                var img = document.createElement('img');
+                img.src = data.imageUrl;
+                img.alt = 'Image';
+                img.style.maxWidth = '100%';
+                img.style.display = 'block';
+                img.style.marginBottom = '10px';
+                tooltip.appendChild(img);
+            }
+            var desc = document.createElement('p');
+            desc.textContent = data.description;
+            tooltip.appendChild(desc);
+
+            var rect = element.getBoundingClientRect();
+            tooltip.style.top = (window.scrollY + rect.bottom + 5) + 'px';
+            tooltip.style.left = (window.scrollX + rect.left) + 'px';
+            tooltip.style.display = 'block';
+        }
+
+        function hideTooltip() {
+            var tooltip = document.getElementById('tag-tooltip');
+            if (tooltip) {
+                tooltip.style.display = 'none';
+            }
+        }
+    });
+</script>
+{% endblock content %}
