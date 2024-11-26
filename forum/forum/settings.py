@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'apps.object_finder',
+    'django_select2',
 ]
 
 MIDDLEWARE = [
@@ -72,7 +73,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'forum.wsgi.application'
-
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
