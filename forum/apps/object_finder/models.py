@@ -60,5 +60,4 @@ class Post(models.Model):
     tags = models.ManyToManyField(Tag, blank=True)
     attributes = models.ManyToManyField(AttributeValue, blank=True)
 
-    def __str__(self):
-        return self.title
+    objects = models.Manager()
