@@ -2,12 +2,31 @@
 
 {% extends "object_finder/base.html" %}
 {% load static %}
-
 {% block content %}
 <div class="container mt-5">
     <h2>{{ post.title }}</h2>
+
+    <!-- Display Sold Status -->
+    {% if post.is_sold %}
+        <div class="alert alert-success" role="alert">
+            This item is sold.
+        </div>
+    {% endif %}
+
     <!-- Quill Viewer -->
     <div id="quill-viewer"></div>
+
+    <!-- Display Attributes -->
+    {% if post.attributes.exists %}
+        <h4>Attributes:</h4>
+        <ul class="list-group mb-3">
+            {% for attribute_value in post.attributes.all %}
+                <li class="list-group-item">
+                    <strong>{{ attribute_value.attribute_name.name }}:</strong> {{ attribute_value.value }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 
     <!-- Display Tags -->
     {% if tags %}
@@ -15,20 +34,57 @@
         <div class="container">
             <ul id="tags-list" class="list-inline">
                 {% for tag in tags %}
-                        <li style="border: 1px solid #000" class="list-inline-item">
-                            <span style="color:gray" class="tag badge badge-info" data-tag-id="{{ tag.tag_id }}">{{ tag.name }}</span>
-                        </li>
+                    <li style="border: 1px solid #000" class="list-inline-item">
+                        <span style="color:gray" class="tag badge badge-info" data-tag-id="{{ tag.tag_id }}">{{ tag.name }}</span>
+                    </li>
                 {% endfor %}
             </ul>
         </div>
     {% endif %}
+
+    <!-- Mark as Sold Form -->
+    {% if user.is_authenticated and user == post.author %}
+        <h4>Mark as Sold</h4>
+        <form method="post">
+            {% csrf_token %}
+            <!-- Hidden field to distinguish forms -->
+            <input type="hidden" name="form_type" value="is_sold_form">
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="is_sold_checkbox" name="is_sold" {% if post.is_sold %}checked{% endif %}>
+                <label class="form-check-label" for="is_sold_checkbox">This item is sold</label>
+            </div>
+            <button type="submit" class="btn btn-primary mt-2">Update Status</button>
+        </form>
+    {% endif %}
+
+
+    <!-- Author Field Below Comments -->
+    <h4>About the Author</h4>
+    <p>
+        <strong>
+            <a href="{% url 'profile' post.author.id %}">
+                {{ post.author.username }}
+            </a>
+        </strong>
+    </p>
 
     <!-- Display Comments -->
     <h3>Comments</h3>
     {% if comments %}
         {% for comment in comments %}
             <div class="comment mb-3">
-                <p><strong>{{ comment.author.username }}</strong> on {{ comment.date_posted|date:"F j, Y, g:i a" }}</p>
+                <p>
+                    <strong>
+                        {% if comment.author %}
+                            <a href="{% url 'profile' comment.author.id %}">
+                                {{ comment.author.username }}
+                            </a>
+                        {% else %}
+                            {{ comment.anonymous_name|default:"Anonymous" }}
+                        {% endif %}
+                    </strong>
+                    on {{ comment.date_posted|date:"F j, Y, g:i a" }}
+                </p>
                 <p>{{ comment.content }}</p>
                 <hr>
             </div>
@@ -38,16 +94,22 @@
     {% endif %}
 
     <!-- Comment Form -->
-    {% if user.is_authenticated %}
-        <h4>Leave a Comment</h4>
-        <form method="post">
-            {% csrf_token %}
-            {{ comment_form.as_p }}
-            <button type="submit" class="btn btn-primary">Submit Comment</button>
-        </form>
-    {% else %}
-        <p>You must be <a href="{% url 'login' %}">logged in</a> to post a comment.</p>
-    {% endif %}
+    <h4>Leave a Comment</h4>
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="form_type" value="comment_form">
+
+        {% if user.is_authenticated %}
+            <!-- Option for logged-in users to post as anonymous -->
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="post_as_anonymous" name="post_as_anonymous">
+                <label class="form-check-label" for="post_as_anonymous">Post as anonymous</label>
+            </div>
+        {% endif %}
+
+        {{ comment_form.as_p }}
+        <button type="submit" class="btn btn-primary">Submit Comment</button>
+    </form>
 </div>
 
 <!-- Include the wikidata.js library -->

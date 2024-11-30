@@ -22,7 +22,7 @@
           <span class="navbar-toggler-icon"></span>
         </button>
         <!-- Navbar links -->
-        <div class="collapse navbar-collapse" id="navbarNav">
+        <div class="collapse navbar-collapse" id="navbarNavSearch">
           <!-- Left-aligned nav items -->
           <ul class="navbar-nav me-auto">
             <li class="nav-item">
@@ -36,6 +36,14 @@
             </li>
             <!-- Additional nav items -->
           </ul>
+
+          <form class="d-flex" method="get" action="{% url 'search_posts' %}">
+            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="q">
+            <button class="btn btn-outline-success me-2" type="submit">Search</button>
+            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#advancedSearchModal">
+              Advanced Search
+            </button>
+          </form>
 
           <!-- Navbar right-aligned nav items -->
           <ul class="navbar-nav ms-auto">
@@ -51,12 +59,12 @@
               </a>
               <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                 <li>
-                  <a class="dropdown-item" href="{% url 'profile' %}">
+                  <a class="dropdown-item" href="{% url 'profile' user.id %}">
                     <i class="fas fa-user-circle"></i> Profile
                   </a>
                 </li>
                 <li>
-                  <a class="dropdown-item" href="{% url 'profile' %}">
+                  <a class="dropdown-item" href="{% url 'profile' user.id %}">
                       <form method="post" action="{% url 'logout' %}" style="display: inline;">
                         {% csrf_token %}
                         <button type="submit" class="dropdown-item logout-button">
@@ -83,6 +91,36 @@
         </div>
       </div>
     </nav>
+
+    <div class="modal fade" id="advancedSearchModal" tabindex="-1" aria-labelledby="advancedSearchModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <form method="get" action="{% url 'search_posts' %}" class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="advancedSearchModalLabel">Advanced Search</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <!-- Search Query -->
+            <div class="mb-3">
+              <label for="advanced-search-query" class="form-label">Search Query</label>
+              <input type="text" class="form-control" id="advanced-search-query" name="q" placeholder="Enter search terms">
+            </div>
+            <!-- Attributes -->
+            <h6>Filter by Attributes:</h6>
+            {% for attribute in attribute_names %}
+            <div class="mb-3">
+              <label for="attribute-{{ attribute.id }}" class="form-label">{{ attribute.name }}</label>
+              <input type="text" class="form-control" id="attribute-{{ attribute.id }}" name="attributes[{{ attribute.id }}]" placeholder="Enter {{ attribute.name }}">
+            </div>
+            {% endfor %}
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Search</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
     <!-- Hero Section -->
     <header class="hero-section">

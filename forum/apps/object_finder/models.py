@@ -12,14 +12,19 @@ class Profile(models.Model):
 
 
 class Comment(models.Model):
-    post = models.ForeignKey(
-        'Post', on_delete=models.CASCADE, related_name='comments')
     content = models.TextField()
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    author = models.ForeignKey(
+        User, on_delete=models.CASCADE, null=True, blank=True)
+    anonymous_name = models.CharField(max_length=255, null=True, blank=True)
     date_posted = models.DateTimeField(auto_now_add=True)
+    post = models.ForeignKey(
+        "Post", related_name='comments', on_delete=models.CASCADE)
 
     def __str__(self):
-        return f'Comment by {self.author} on {self.post.title}'
+        if self.author:
+            return f'Comment by {self.author} on {self.post.title}'
+        else:
+            return f'Anonymous comment on {self.post.title}'
 
 
 class Tag(models.Model):
@@ -43,9 +48,6 @@ class AttributeValue(models.Model):
         AttributeName, on_delete=models.CASCADE, related_name='values')
     value = models.CharField(max_length=100)
 
-    class Meta:
-        unique_together = ('attribute_name', 'value')
-
     def __str__(self):
         return f"{self.attribute_name.name}: {self.value}"
 
@@ -59,5 +61,6 @@ class Post(models.Model):
     date_posted = models.DateTimeField(auto_now_add=True)
     tags = models.ManyToManyField(Tag, blank=True)
     attributes = models.ManyToManyField(AttributeValue, blank=True)
+    is_sold = models.BooleanField(default=False)
 
     objects = models.Manager()
