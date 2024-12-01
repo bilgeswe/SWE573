@@ -61,6 +61,6 @@ class Post(models.Model):
     date_posted = models.DateTimeField(auto_now_add=True)
     tags = models.ManyToManyField(Tag, blank=True)
     attributes = models.ManyToManyField(AttributeValue, blank=True)
-    is_sold = models.BooleanField(default=False)
+    is_solved = models.BooleanField(default=False)
 
     objects = models.Manager()

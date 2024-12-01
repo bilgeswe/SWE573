@@ -5,19 +5,35 @@
   <h2>User Profile</h2>
   <div class="card">
     <div class="card-body">
-      <h5 class="card-title">{{ user.username }}</h5>
+      <h5 class="card-title">{{ user.username }}
+      {% if user_posts|length >= 5 %}
+         - <span class="badge top-contributor-badge">Top Contributor</span>
+      {% endif %}
+      </h5>
       <p class="card-text"><strong>Email:</strong> {{ user.email }}</p>
       <p class="card-text"><strong>First Name:</strong> {{ user.first_name }}</p>
       <p class="card-text"><strong>Last Name:</strong> {{ user.last_name }}</p>
+
     </div>
   </div>
   <br>
-  <h2>User posts</h2>
+  <h2>User Posts</h2>
   <hr>
-  {% for post in user_posts %}
-  <li>
-    <a href="{% url 'view_post' post_id=post.id %}">{{ post.title }}</a>
-  </li>
-  {% endfor %}
+  <ul class="list-group">
+    {% for post in user_posts %}
+      <li class="list-group-item">
+        <a href="{% url 'view_post' post_id=post.id %}">{{ post.title }}</a>
+      </li>
+    {% empty %}
+      <li class="list-group-item">This user has not posted anything yet.</li>
+    {% endfor %}
+  </ul>
 </div>
+
+<style>
+  .top-contributor-badge {
+    background-color: #FFD700; /* Gold color */
+    color: #000;
+  }
+</style>
 {% endblock content %}

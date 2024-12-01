@@ -4,9 +4,28 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .forms import PostForm, CommentForm
 from .models import Post, Tag, AttributeName, AttributeValue
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 import re
+from django.http import JsonResponse
+
+
+@login_required
+def update_is_solved(request, post_id):
+    if request.method == 'POST':
+        try:
+            post = get_object_or_404(Post, id=post_id)
+            if request.user != post.author:
+                return JsonResponse({'success': False, 'error': 'Permission denied.'}, status=403)
+
+            data = json.loads(request.body)
+            is_solved = data.get('is_solved', False)
+            post.is_solved = is_solved
+            post.save()
+            return JsonResponse({'success': True})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+    else:
+        return JsonResponse({'success': False, 'error': 'Invalid request.'}, status=400)
 
 
 def profile_view(request, user_id):
@@ -18,7 +37,7 @@ def profile_view(request, user_id):
 def index(request):
     attribute_names = AttributeName.objects.all()
     posts = Post.objects.all().order_by('-date_posted')[0:10]
-    return render(request, 'object_finder/index.html', {'posts': posts, 'attribute_names': attribute_names})
+    return render(request, 'object_finder/index.html', {'view_name': 'Recent Discussions', 'posts': posts, 'attribute_names': attribute_names})
 
 
 def search_posts(request):
@@ -57,7 +76,8 @@ def search_posts(request):
 
     attribute_names = AttributeName.objects.all()
 
-    return render(request, 'object_finder/search_result.html', {
+    return render(request, 'object_finder/index.html', {
+        'view_name': 'Search Results',
         'posts': posts,
         'attribute_names': attribute_names,
         'query': query
@@ -66,6 +86,8 @@ def search_posts(request):
 
 @login_required
 def form(request):
+    attribute_names = AttributeName.objects.all()
+    form = PostForm()
     if request.method == 'POST':
         form = PostForm(request.POST)
         if form.is_valid():
@@ -78,8 +100,25 @@ def form(request):
                     tags = json.loads(tags_data)
                 except json.JSONDecodeError:
                     form.add_error(None, 'Invalid content or tags data.')
-                    attribute_names = AttributeName.objects.all()
-                    return render(request, 'object_finder/form.html', {'form': form, 'attribute_names': attribute_names})
+                    return render(request, 'object_finder/form.html', {
+                        'form': form,
+                        'attribute_names': attribute_names
+                    })
+
+                contains_image = False
+                for op in content_delta.get('ops', []):
+                    insert_content = op.get('insert', {})
+                    if isinstance(insert_content, dict) and 'image' in insert_content:
+                        contains_image = True
+                        break
+
+                if not contains_image:
+                    form.add_error(
+                        None, 'You must include at least one image in the content.')
+                    return render(request, 'object_finder/form.html', {
+                        'form': form,
+                        'attribute_names': attribute_names
+                    })
 
                 post = form.save(commit=False)
                 post.author = request.user
@@ -96,7 +135,6 @@ def form(request):
                     )
                     post.tags.add(tag)
 
-                attribute_names = AttributeName.objects.all()
                 for attribute in attribute_names:
                     input_name = f'attribute_{attribute.id}'
                     value = request.POST.get(input_name, '').strip()
@@ -110,13 +148,14 @@ def form(request):
                 return redirect('/')
             else:
                 form.add_error(None, 'Content is required.')
-        else:
-            attribute_names = AttributeName.objects.all()
-            return render(request, 'object_finder/form.html', {'form': form, 'attribute_names': attribute_names})
-    else:
-        form = PostForm()
-        attribute_names = AttributeName.objects.all()
-    return render(request, 'object_finder/form.html', {'form': form, 'attribute_names': attribute_names})
+            return render(request, 'object_finder/form.html', {
+                'form': form,
+                'attribute_names': attribute_names
+            })
+    return render(request, 'object_finder/form.html', {
+        'form': form,
+        'attribute_names': attribute_names
+    })
 
 
 def view_post(request, post_id):
@@ -157,14 +196,6 @@ def view_post(request, post_id):
 
                 comment.save()
                 return redirect('view_post', post_id=post.id)
-        elif form_type == 'is_sold_form':
-            if request.user == post.author:
-                is_sold = 'is_sold' in request.POST
-                post.is_sold = is_sold
-                post.save()
-                return redirect('view_post', post_id=post.id)
-            else:
-                raise PermissionDenied
 
     comments = post.comments.all().order_by('date_posted')
     tags = post.tags.all()

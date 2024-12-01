@@ -9,7 +9,24 @@ def create_initial_attribute_names(apps, schema_editor):
         'size',
         'color',
         'texture',
-        'location found',
+        'location',
+        'description',
+        'time',
+        'hardness',
+        'pattern',
+        'brand',
+        'print',
+        'functionality',
+        'taste',
+        'volume',
+        'part-of'
+        'width',
+        'shape',
+        'height',
+        'len',
+        'year',
+        'price',
+        'condition',
     ]
     for attr in initial_attributes:
         AttributeName.objects.create(name=attr)
