@@ -1,116 +1,62 @@
+<!-- templates/object_finder/view_post.html -->
+
 {% extends "object_finder/base.html" %}
 {% load static %}
+
 {% block content %}
 <div class="container mt-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>{{ post.title }}</h2>
-        {% if user.is_authenticated and user == post.author %}
-            <div class="form-check">
-                <input type="checkbox" class="form-check-input" id="is_solved_checkbox" name="is_solved" {% if post.is_solved %}checked{% endif %}>
-                <label class="form-check-label" for="is_solved_checkbox">Solved</label>
-            </div>
-        {% endif %}
-    </div>
+    <h2>{{ post.title }}</h2>
+    <!-- Quill Viewer -->
+    <div id="quill-viewer"></div>
 
-    {% if post.is_solved %}
-        <div class="alert alert-success" role="alert">
-            This issue has been resolved.
-        </div>
-    {% endif %}
-
-    <div id="quill-viewer" class="mb-4"></div>
-
-    <div class="row">
-        {% if post.attributes.exists %}
-        <div class="col-md-6">
-            <h4>Attributes:</h4>
-            <ul class="list-group mb-3">
-                {% for attribute_value in post.attributes.all %}
-                    <li class="list-group-item">
-                        <strong>{{ attribute_value.attribute_name.name }}:</strong> {{ attribute_value.value }}
-                    </li>
+    <!-- Display Tags -->
+    {% if tags %}
+        <h4>Tags:</h4>
+        <div class="container">
+            <ul id="tags-list" class="list-inline">
+                {% for tag in tags %}
+                        <li style="border: 1px solid #000" class="list-inline-item">
+                            <span style="color:gray" class="tag badge badge-info" data-tag-id="{{ tag.tag_id }}">{{ tag.name }}</span>
+                        </li>
                 {% endfor %}
             </ul>
         </div>
-        {% endif %}
+    {% endif %}
 
-        {% if tags %}
-        <div class="col-md-6">
-            <h4>Tags:</h4>
-            <div class="container">
-                <ul id="tags-list" class="list-inline">
-                    {% for tag in tags %}
-                        <li class="list-inline-item">
-                            <a href="https://www.wikidata.org/wiki/{{ tag.tag_id }}" target="_blank" class="tag badge badge-info" data-tag-id="{{ tag.tag_id }}" style="text-decoration: none; color: inherit;">
-                                {{ tag.name }}
-                            </a>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
-        {% endif %}
-    </div>
-
-    <div class="mb-4">
-        <h4>About the Author</h4>
-        <p>
-            <strong>
-                <a href="{% url 'profile' post.author.id %}">
-                    {{ post.author.username }}
-                </a>
-            </strong>
-        </p>
-    </div>
-
+    <!-- Display Comments -->
     <h3>Comments</h3>
-    <div class="comments-section mb-4">
-        {% if comments %}
-            {% for comment in comments %}
-                <div class="comment mb-3 p-3 border rounded">
-                    <p>
-                        <strong>
-                            {% if comment.author %}
-                                <a href="{% url 'profile' comment.author.id %}">
-                                    {{ comment.author.username }}
-                                </a>
-                            {% else %}
-                                {{ comment.anonymous_name|default:"Anonymous" }}
-                            {% endif %}
-                        </strong>
-                        <small class="text-muted">on {{ comment.date_posted|date:"F j, Y, g:i a" }}</small>
-                    </p>
-                    <p>{{ comment.content }}</p>
-                </div>
-            {% endfor %}
-        {% else %}
-            <p>No comments yet. Be the first to comment!</p>
-        {% endif %}
-    </div>
+    {% if comments %}
+        {% for comment in comments %}
+            <div class="comment mb-3">
+                <p><strong>{{ comment.author.username }}</strong> on {{ comment.date_posted|date:"F j, Y, g:i a" }}</p>
+                <p>{{ comment.content }}</p>
+                <hr>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No comments yet. Be the first to comment!</p>
+    {% endif %}
 
-    <div class="comment-form">
+    <!-- Comment Form -->
+    {% if user.is_authenticated %}
         <h4>Leave a Comment</h4>
         <form method="post">
             {% csrf_token %}
-            <input type="hidden" name="form_type" value="comment_form">
-
-            {% if user.is_authenticated %}
-                <div class="form-check mb-2">
-                    <input type="checkbox" class="form-check-input" id="post_as_anonymous" name="post_as_anonymous">
-                    <label class="form-check-label" for="post_as_anonymous">Post as anonymous</label>
-                </div>
-            {% endif %}
-
             {{ comment_form.as_p }}
             <button type="submit" class="btn btn-primary">Submit Comment</button>
         </form>
-    </div>
+    {% else %}
+        <p>You must be <a href="{% url 'login' %}">logged in</a> to post a comment.</p>
+    {% endif %}
 </div>
 
+<!-- Include the wikidata.js library -->
 <script src="{% static 'js/wikidata.js' %}"></script>
+<!-- Include the MD5 library for image URL generation -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
 
 <script>
+    // Initialize Quill in read-only mode
     var quill = new Quill('#quill-viewer', {
         theme: 'snow',
         readOnly: true,
@@ -122,6 +68,7 @@
     var content_delta = {{ post.content_delta|safe }};
     quill.setContents(content_delta);
 
+    // Fetch additional data for tags when hovered
     document.addEventListener('DOMContentLoaded', function() {
         var tags = document.querySelectorAll('.tag');
         var tagDataCache = {};
@@ -147,6 +94,7 @@
                     var description = entity.descriptions && entity.descriptions.en ? entity.descriptions.en.value : 'No description available.';
                     var imageUrl = '';
 
+                    // Fetch image if available (Property P18)
                     if (entity.claims && entity.claims.P18 && entity.claims.P18[0]) {
                         var fileName = entity.claims.P18[0].mainsnak.datavalue.value;
                         imageUrl = getCommonsImageUrl(fileName);
@@ -211,66 +159,6 @@
                 tooltip.style.display = 'none';
             }
         }
-
-        {% if user.is_authenticated and user == post.author %}
-        document.getElementById('is_solved_checkbox').addEventListener('change', function() {
-            var isResolved = this.checked;
-
-            function getCookie(name) {
-                var cookieValue = null;
-                if (document.cookie && document.cookie !== '') {
-                    var cookies = document.cookie.split(';');
-                    for (var i=0; i<cookies.length; i++) {
-                        var cookie = cookies[i].trim();
-                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                            break;
-                        }
-                    }
-                }
-                return cookieValue;
-            }
-
-            var csrftoken = getCookie('csrftoken');
-
-            fetch('{% url "update_is_solved" post.id %}', {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrftoken,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ 'is_solved': isResolved })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    if (isResolved) {
-                        alert('Marked as resolved.');
-                        var resolvedAlert = document.querySelector('.alert.alert-success');
-                        if (!resolvedAlert) {
-                            resolvedAlert = document.createElement('div');
-                            resolvedAlert.className = 'alert alert-success';
-                            resolvedAlert.role = 'alert';
-                            resolvedAlert.textContent = 'This issue has been resolved.';
-                            document.querySelector('.container.mt-5').insertBefore(resolvedAlert, document.querySelector('#quill-viewer'));
-                        }
-                    } else {
-                        alert('Marked as unresolved.');
-                        var resolvedAlert = document.querySelector('.alert.alert-success');
-                        if (resolvedAlert) {
-                            resolvedAlert.parentNode.removeChild(resolvedAlert);
-                        }
-                    }
-                } else {
-                    alert('Failed to update status.');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred.');
-            });
-        });
-        {% endif %}
     });
 </script>
 {% endblock content %}
