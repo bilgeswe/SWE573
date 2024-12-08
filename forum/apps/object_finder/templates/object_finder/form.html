@@ -11,6 +11,7 @@
         {% if form.errors %}
             <div class="alert alert-danger">
                 <strong>Please correct the errors below:</strong>
+                {{ form.errors }}
             </div>
         {% endif %}
         {{ form.title }}
@@ -21,10 +22,14 @@
             <input type="text" id="tags-input" class="form-control" placeholder="Start typing to search tags...">
         </div>
 
+        <!-- Quill Editor -->
         <div id="quill-editor" style="height: 300px;"></div>
         <input type="hidden" name="content_delta" id="content-delta">
         <!-- Hidden input to store selected tags -->
         <input type="hidden" name="tags" id="selected-tags">
+
+        {% include 'object_finder/attributes.html' %}
+
         <button type="submit" id="submit-button" class="btn btn-primary">Submit</button>
     </form>
 </div>
