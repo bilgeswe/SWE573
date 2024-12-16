@@ -42,5 +42,11 @@ docker-compose up -d --build
 # Docker run migrations
 docker-compose exec web python forum/manage.py migrate
 
+# Docker compose down
+docker-compose down
+
 # Docker create superuser
 docker-compose exec web python forum/manage.py createsuperuser
+
+## When running tests, make sure you're in where manage.py is located
+python manage.py test --settings forum.settings_dev
