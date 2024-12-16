@@ -2,15 +2,18 @@
 {% load form_tags %}
 
 {% block content %}
+<!-- Main login container -->
 <div class="container mt-5">
     <h2>Login</h2>
     <div class="row justify-content-center">
         <div class="col-md-6">
+            <!-- Display validation errors if any -->
             {% if form.errors %}
                 <div class="alert alert-danger">
                     Please correct the error{{ form.errors|pluralize }} below.
                 </div>
             {% endif %}
+            <!-- Login form -->
             <form method="post" novalidate>
                 {% csrf_token %}
                 <div class="mb-3">
@@ -23,6 +26,7 @@
                 </div>
                 <button type="submit" class="btn btn-primary">Login</button>
             </form>
+            <!-- Sign up link -->
             <p class="mt-3">
                 Don't have an account? <a href="{% url 'signup' %}">Sign up here</a>.
             </p>
@@ -30,4 +34,3 @@
     </div>
 </div>
 {% endblock content %}
-

@@ -1,5 +1,4 @@
-<!-- templates/object_finder/form.html -->
-
+<!-- Main form template for creating new posts -->
 {% extends "object_finder/base.html" %}
 {% load static %}
 
@@ -16,29 +15,30 @@
         {% endif %}
         {{ form.title }}
 
-        <!-- Tags Input Field -->
+        <!-- Tags input with autocomplete -->
         <div class="form-group">
             <label for="tags-input">Tags</label>
             <input type="text" id="tags-input" class="form-control" placeholder="Start typing to search tags...">
         </div>
 
-        <!-- Quill Editor -->
+        <!-- Rich text editor -->
         <div id="quill-editor" style="height: 300px;"></div>
         <input type="hidden" name="content_delta" id="content-delta">
-        <!-- Hidden input to store selected tags -->
         <input type="hidden" name="tags" id="selected-tags">
 
+        <!-- Physical attributes form section -->
         {% include 'object_finder/attributes.html' %}
 
         <button type="submit" id="submit-button" class="btn btn-primary">Submit</button>
     </form>
 </div>
 
-<!-- Include the wikidata.js library -->
+<!-- External dependencies -->
 <script src="{% static 'js/wikidata.js' %}"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Quill editor
         var quill = new Quill('#quill-editor', {
             theme: 'snow',
             modules: {
@@ -54,6 +54,7 @@
         var form = document.getElementById('post-form');
         var submitButton = document.getElementById('submit-button');
 
+        // Handle form submission
         submitButton.addEventListener('click', function(event) {
             event.preventDefault();
             var content_delta = JSON.stringify(quill.getContents());
@@ -61,7 +62,7 @@
             form.submit();
         });
 
-        // Tags Autocomplete Functionality
+        // Tags autocomplete setup
         var tagsInput = document.getElementById('tags-input');
         var selectedTagsInput = document.getElementById('selected-tags');
         var selectedTags = [];
@@ -81,6 +82,7 @@
 
         var suggestionList = createSuggestionList();
 
+        // Handle tag input and suggestions
         tagsInput.addEventListener('input', function() {
             var query = tagsInput.value.trim();
             if (query.length > 0) {
@@ -105,6 +107,7 @@
             }
         });
 
+        // Tag management functions
         function addTag(tag) {
             if (selectedTags.find(t => t.id === tag.id)) {
                 return;
@@ -121,7 +124,6 @@
         }
 
         function updateSelectedTagsInput() {
-            // Store selected tags as a JSON string
             selectedTagsInput.value = JSON.stringify(selectedTags);
         }
 
@@ -151,7 +153,7 @@
             });
         }
 
-        // Close suggestions when clicking outside
+        // Close suggestion list when clicking outside
         document.addEventListener('click', function(event) {
             if (!tagsInput.contains(event.target)) {
                 suggestionList.innerHTML = '';

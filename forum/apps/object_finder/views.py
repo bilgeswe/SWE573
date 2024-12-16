@@ -13,6 +13,7 @@ from django.views.decorators.csrf import csrf_exempt
 @login_required
 @csrf_exempt
 def update_is_solved(request, post_id, comment_id):
+    """Updates the solved status of a comment on a post"""
     if request.method == 'POST':
         try:
             post = get_object_or_404(Post, id=post_id)
@@ -35,17 +36,20 @@ def update_is_solved(request, post_id, comment_id):
 
 
 def profile_view(request, user_id):
+    """Displays posts by a specific user"""
     user_posts = Post.objects.filter(author__id=user_id)
     return render(request, 'object_finder/profile.html', {'user_posts': user_posts})
 
 
 def index(request):
+    """Displays the 10 most recent posts"""
     posts = Post.objects.all().order_by('-date_posted')[0:10]
     return render(request, 'object_finder/index.html', {'view_name': 'Recent Discussions', 'posts': posts})
 
 
 @login_required
 def search_posts(request):
+    """Searches posts based on query and attributes"""
     query = request.GET.get('q', '').strip()
 
     attributes = {}
@@ -116,6 +120,7 @@ def search_posts(request):
 
 @login_required
 def form(request):
+    """Handles creation of new posts"""
     form = PostForm()
     if request.method == 'POST':
         form = PostForm(request.POST)
@@ -134,6 +139,7 @@ def form(request):
                         'form': form,
                     })
 
+                # Check if post contains at least one image
                 contains_image = False
                 for op in content_delta.get('ops', []):
                     insert_content = op.get('insert', {})
@@ -148,8 +154,8 @@ def form(request):
                         'form': form,
                     })
 
+                # Process attributes
                 attributes = {}
-
                 for key, value in request.POST.items():
                     if key.startswith('attribute_'):
                         attribute_name = key[len('attribute_'):]
@@ -167,6 +173,7 @@ def form(request):
                 post.content_delta = content_delta
                 post.save()
 
+                # Process tags
                 for tag_data in tags:
                     tag_id = tag_data.get('id')
                     tag_label = tag_data.get('label')
@@ -189,6 +196,7 @@ def form(request):
 
 
 def view_post(request, post_id):
+    """Displays a single post and handles comment submission"""
     post = get_object_or_404(Post, id=post_id)
 
     if request.user.is_authenticated:
@@ -242,6 +250,7 @@ def view_post(request, post_id):
     })
 
 def signup_view(request):
+    """Handles user registration"""
     if request.method == 'POST':
         form = SignUpForm(request.POST)
         if form.is_valid():

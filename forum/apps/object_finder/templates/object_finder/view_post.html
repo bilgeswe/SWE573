@@ -2,6 +2,7 @@
 {% load static %}
 {% block content %}
 <div class="container mt-5">
+    <!-- Post title section -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         {% if is_solved %}
         <h2>{{ post.title }}<h3 style="color:red">This post has been solved!</h3></h2>
@@ -10,15 +11,18 @@
         {% endif %}
     </div>
 
+    <!-- Solved status alert -->
     {% if post.is_solved %}
         <div class="alert alert-success" role="alert">
             This issue has been resolved.
         </div>
     {% endif %}
 
+    <!-- Post content viewer -->
     <div id="quill-viewer" class="mb-4"></div>
 
     <div class="row">
+        <!-- Physical attributes section -->
         {% if post.attributes %}
             <div class="col-md-6">
                 <h4>Attributes:</h4>
@@ -32,6 +36,7 @@
             </div>
         {% endif %}
 
+        <!-- Tags section -->
         {% if tags %}
         <div class="col-md-6">
             <h4>Tags:</h4>
@@ -50,6 +55,7 @@
         {% endif %}
     </div>
 
+    <!-- Author info section -->
     <div class="mb-4">
         <h4>About the Author</h4>
         <p>
@@ -61,8 +67,10 @@
         </p>
     </div>
 
+    <!-- Comments section -->
     {% include 'object_finder/comments.html' %}
 
+    <!-- Comment form -->
     <div class="comment-form">
         <h4>Leave a Comment</h4>
         <form method="post">
@@ -82,10 +90,12 @@
     </div>
 </div>
 
+<!-- External dependencies -->
 <script src="{% static 'js/wikidata.js' %}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-md5/2.19.0/js/md5.min.js"></script>
 
 <script>
+    // Initialize Quill viewer
     var quill = new Quill('#quill-viewer', {
         theme: 'snow',
         readOnly: true,
@@ -97,10 +107,12 @@
     var content_delta = {{ post.content_delta|safe }};
     quill.setContents(content_delta);
 
+    // Handle tag tooltips
     document.addEventListener('DOMContentLoaded', function() {
         var tags = document.querySelectorAll('.tag');
         var tagDataCache = {};
 
+        // Add event listeners to tags
         tags.forEach(function(tagElement) {
             tagElement.addEventListener('mouseover', function() {
                 var tagId = tagElement.dataset.tagId;
@@ -116,6 +128,7 @@
             });
         });
 
+        // Fetch tag details from Wikidata API
         function fetchTagDetails(element, tagId) {
             WikidataAPI.getEntityDetails(tagId)
                 .then(function(entity) {
@@ -136,6 +149,7 @@
                 });
         }
 
+        // Generate Wikimedia Commons image URL
         function getCommonsImageUrl(fileName) {
             var sanitizedFileName = fileName.replace(/ /g, '_');
             var encodedFileName = encodeURIComponent(sanitizedFileName);
@@ -145,6 +159,7 @@
             return url;
         }
 
+        // Display tooltip with tag information
         function showTooltip(element, data) {
             var tooltip = document.getElementById('tag-tooltip');
             if (!tooltip) {
@@ -180,6 +195,7 @@
             tooltip.style.display = 'block';
         }
 
+        // Hide tooltip
         function hideTooltip() {
             var tooltip = document.getElementById('tag-tooltip');
             if (tooltip) {

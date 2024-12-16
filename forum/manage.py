@@ -5,7 +5,12 @@ import sys
 
 
 def main():
-    """Run administrative tasks."""
+    """
+    The main function:
+    1. Sets up Django settings module
+    2. Imports and executes Django management commands
+    3. Handles import errors with helpful messages
+    """
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'forum.settings')
     try:
         from django.core.management import execute_from_command_line
@@ -19,4 +24,5 @@ def main():
 
 
 if __name__ == '__main__':
+    # Entry point - calls main() when script is run directly
     main()

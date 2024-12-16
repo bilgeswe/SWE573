@@ -1,27 +1,35 @@
+<!-- Main comment section container -->
 <div id="comment-div">
   <h3>Comments</h3>
+  <!-- Container for all comments with margin bottom -->
   <div class="comments-section mb-4">
       {% if comments %}
           {% for comment in comments %}
           {% if comment.is_solved %}
+              <!-- Solved comment with special background color -->
               <div style="background-color: #EAB676" class="comment mb-3 p-3 border rounded">
           {% else %}
+              <!-- Unsolved comment with HTMX swap behavior -->
               <div hx-swap="outerHTML" class="comment mb-3 p-3 border rounded">
           {% endif %}
+                  <!-- Comment header with author info and solved status -->
                   <div class="d-flex justify-content-between align-items-center">
                       <p class="mb-0">
                           <strong>
                               {% if comment.author %}
+                                  <!-- Link to author's profile if authenticated -->
                                   <a href="{% url 'profile' comment.author.id %}">
                                       {{ comment.author.username }}
                                   </a>
                               {% else %}
+                                  <!-- Display anonymous name if no author -->
                                   {{ comment.anonymous_name|default:"Anonymous" }}
                               {% endif %}
                           </strong>
                           <small class="text-muted"> on {{ comment.date_posted|date:"F j, Y, g:i a" }}</small>
                       </p>
                       {% if user.is_authenticated and user == post.author %}
+                      <!-- Solved checkbox for post author -->
                       <div class="form-check">
                           <input
                               hx-post="{% url 'update_is_solved' post.id comment.id %}"
@@ -35,16 +43,18 @@
                       </div>
                       {% else %}
                         {% if comment.is_solved %}
+                          <!-- Display solved status for non-authors -->
                           Solved by this comment!
                         {% endif %}
                       {% endif %}
                   </div>
+                  <!-- Comment content -->
                   <p>{{ comment.content }}</p>
               </div>
           {% endfor %}
       {% else %}
+          <!-- Message when no comments exist -->
           <p>No comments yet. Be the first to comment!</p>
       {% endif %}
   </div>
 </div>
-
