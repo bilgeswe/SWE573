@@ -10,7 +10,25 @@
             <!-- Display validation errors if any -->
             {% if form.errors %}
                 <div class="alert alert-danger">
-                    Please correct the error{{ form.errors|pluralize }} below.
+                    {% if form.username.errors %}
+                        <p>Username error: {{ form.username.errors|striptags }}</p>
+                    {% endif %}
+                    {% if form.password1.errors %}
+                        <p>Password must:</p>
+                        <ul>
+                            <li>Be at least 8 characters long</li>
+                            <li>Contain at least one uppercase letter</li>
+                            <li>Contain at least one number</li>
+                            <li>Not be too similar to your username</li>
+                            <li>Not be a commonly used password</li>
+                        </ul>
+                    {% endif %}
+                    {% if form.password2.errors %}
+                        <p>Password confirmation error: {{ form.password2.errors|striptags }}</p>
+                    {% endif %}
+                    {% if form.email.errors %}
+                        <p>Email error: {{ form.email.errors|striptags }}</p>
+                    {% endif %}
                 </div>
             {% endif %}
             <!-- Signup form -->
@@ -19,10 +37,12 @@
                 <div class="mb-3">
                     <label for="id_username" class="form-label">Username</label>
                     {{ form.username|add_class:"form-control" }}
+                    <small class="text-muted">Required. 150 characters or fewer.</small>
                 </div>
                 <div class="mb-3">
                     <label for="id_email" class="form-label">Email (Optional)</label>
                     {{ form.email|add_class:"form-control" }}
+                    <small class="text-muted">Please enter a valid email address.</small>
                 </div>
                 <div class="mb-3">
                     <label for="id_first_name" class="form-label">First Name (Optional)</label>
@@ -35,6 +55,7 @@
                 <div class="mb-3">
                     <label for="id_password1" class="form-label">Password</label>
                     {{ form.password1|add_class:"form-control" }}
+                    <small class="text-muted">Your password must be at least 8 characters long and contain letters and numbers.</small>
                 </div>
                 <div class="mb-3">
                     <label for="id_password2" class="form-label">Confirm Password</label>
