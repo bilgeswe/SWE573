@@ -10,10 +10,15 @@
          - <span class="badge top-contributor-badge">Top Contributor</span>
       {% endif %}
       </h5>
-      <p class="card-text"><strong>Email:</strong> {{ user.email }}</p>
-      <p class="card-text"><strong>First Name:</strong> {{ user.first_name }}</p>
-      <p class="card-text"><strong>Last Name:</strong> {{ user.last_name }}</p>
-
+      {% if user.email %}
+        <p class="card-text"><strong>Email:</strong> {{ user.email }}</p>
+      {% endif %}
+      {% if user.first_name %}
+        <p class="card-text"><strong>First Name:</strong> {{ user.first_name }}</p>
+      {% endif %}
+      {% if user.last_name %}
+        <p class="card-text"><strong>Last Name:</strong> {{ user.last_name }}</p>
+      {% endif %}
     </div>
   </div>
   <br>

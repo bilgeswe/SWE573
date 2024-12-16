@@ -1,7 +1,7 @@
 import json
 from django.contrib.auth.forms import UserCreationForm
 from django.shortcuts import render, get_object_or_404, redirect
-from .forms import PostForm, CommentForm
+from .forms import PostForm, CommentForm, SignUpForm
 from .models import Post, Tag, Comment
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -241,13 +241,18 @@ def view_post(request, post_id):
         'is_solved': is_solved
     })
 
-
 def signup_view(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = SignUpForm(request.POST)
         if form.is_valid():
-            form.save()
+            user = form.save(commit=False)
+            user.username = form.cleaned_data.get('username')
+            user.email = form.cleaned_data.get('email')
+            user.first_name = form.cleaned_data.get('first_name') 
+            user.last_name = form.cleaned_data.get('last_name')
+            user.set_password(form.cleaned_data.get('password1'))
+            user.save()
             return redirect('login')
     else:
-        form = UserCreationForm()
+        form = SignUpForm()
     return render(request, 'registration/signup.html', {'form': form})

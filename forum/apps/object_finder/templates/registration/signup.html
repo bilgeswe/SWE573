@@ -18,6 +18,18 @@
                     {{ form.username|add_class:"form-control" }}
                 </div>
                 <div class="mb-3">
+                    <label for="id_email" class="form-label">Email (Optional)</label>
+                    {{ form.email|add_class:"form-control" }}
+                </div>
+                <div class="mb-3">
+                    <label for="id_first_name" class="form-label">First Name (Optional)</label>
+                    {{ form.first_name|add_class:"form-control" }}
+                </div>
+                <div class="mb-3">
+                    <label for="id_last_name" class="form-label">Last Name (Optional)</label>
+                    {{ form.last_name|add_class:"form-control" }}
+                </div>
+                <div class="mb-3">
                     <label for="id_password1" class="form-label">Password</label>
                     {{ form.password1|add_class:"form-control" }}
                 </div>
